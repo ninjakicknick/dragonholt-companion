@@ -1,0 +1,1 @@
+Static reference values that are safe for the companion to know belong in this directory. Mutable campaign progress belongs in state; calculations belong in domain; adventure prose and hidden outcomes are deliberately excluded.
