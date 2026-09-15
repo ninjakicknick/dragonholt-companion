@@ -1,0 +1,1 @@
+State mutations in this layer use functional setters (`setState(current => ...)`) so multiple rapid interactions compose correctly instead of reading stale render state. This is especially important for channel-like repeated controls such as stamina, time, progress, and story-point toggles.
