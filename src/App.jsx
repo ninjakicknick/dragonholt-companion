@@ -1,14 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { Award, Book, Map, Save, Users } from 'lucide-react';
+import { Award, Book, Home, Map, Save, Users } from 'lucide-react';
 import AchievementsScreen from './screens/AchievementsScreen';
 import HeroesScreen from './screens/HeroesScreen';
 import PartyScreen from './screens/PartyScreen';
+import SessionScreen from './screens/SessionScreen';
 import VillageScreen from './screens/VillageScreen';
 import { useCampaign } from './state/useCampaign';
 import { useCampaignActions } from './state/useCampaignActions';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('party');
+  const [activeTab, setActiveTab] = useState('home');
   const [editingHero, setEditingHero] = useState(null);
   const importInputRef = useRef(null);
   const campaign = useCampaign();
@@ -63,6 +64,7 @@ export default function App() {
   };
 
   const tabs = [
+    { id: 'home', icon: Home, desktop: 'Session', mobile: 'Session' },
     { id: 'party', icon: Book, desktop: 'Party & Story', mobile: 'Story' },
     { id: 'heroes', icon: Users, desktop: 'Heroes', mobile: 'Heroes' },
     { id: 'village', icon: Map, desktop: 'Village Progress', mobile: 'Village' },
@@ -92,6 +94,7 @@ export default function App() {
           ))}
         </div>
         <div>
+          {activeTab === 'home' && <SessionScreen party={party} heroes={heroes} village={village} onAdvanceTime={actions.advanceTime} onOpenParty={() => setActiveTab('party')} onOpenHeroes={() => setActiveTab('heroes')} onOpenVillage={() => setActiveTab('village')} />}
           {activeTab === 'party' && <PartyScreen party={party} setParty={setParty} onToggleStoryPoint={actions.toggleStoryPoint} />}
           {activeTab === 'heroes' && <HeroesScreen {...heroScreenProps} />}
           {activeTab === 'village' && <VillageScreen village={village} advanceTime={actions.advanceTime} nextDay={actions.nextDay} updateProgress={actions.updateProgress} />}
@@ -101,7 +104,7 @@ export default function App() {
 
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#2a1b12] text-[#d2c2a5] shadow-[0_-4px_6px_rgba(0,0,0,0.3)] z-50 flex justify-around p-2 pb-safe border-t border-[#8c2a2a]">
         {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center p-2 min-w-[4rem] rounded-xl transition-colors ${activeTab === tab.id ? 'text-[#f8f4e6] bg-[#8c2a2a]' : 'hover:text-white hover:bg-[#4a3b32]'}`}><tab.icon size={22} className="mb-1" /><span className="text-[10px] font-bold uppercase tracking-wider">{tab.mobile}</span></button>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center p-2 min-w-[3.5rem] rounded-xl transition-colors ${activeTab === tab.id ? 'text-[#f8f4e6] bg-[#8c2a2a]' : 'hover:text-white hover:bg-[#4a3b32]'}`}><tab.icon size={21} className="mb-1" /><span className="text-[9px] font-bold uppercase tracking-wider">{tab.mobile}</span></button>
         ))}
       </div>
     </div>
