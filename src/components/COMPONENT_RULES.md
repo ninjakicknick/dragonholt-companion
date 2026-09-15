@@ -1,0 +1,1 @@
+Extracted components should receive values and callbacks through props, avoid direct localStorage access, and avoid embedding campaign rule calculations in JSX. Shared visual primitives belong here; campaign-specific orchestration belongs in screens.
