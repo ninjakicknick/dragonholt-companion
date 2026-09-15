@@ -1,0 +1,1 @@
+The legacy tabs will be extracted in this order: Party, Heroes, Village, Achievements, then the navigation/app shell. Each extraction should preserve current behavior before any visual redesign is introduced.
