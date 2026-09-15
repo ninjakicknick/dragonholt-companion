@@ -1,0 +1,1 @@
+Domain modules should be pure whenever practical: given campaign-visible inputs, return derived values or proposed state changes without reading browser storage or rendering UI. This keeps rules-aware conveniences reusable and testable.
