@@ -1,53 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Award, Book, Map, Save, Users } from 'lucide-react';
-import { DAY_SLOTS } from './data/gameData';
 import AchievementsScreen from './screens/AchievementsScreen';
 import HeroesScreen from './screens/HeroesScreen';
 import PartyScreen from './screens/PartyScreen';
 import VillageScreen from './screens/VillageScreen';
-
-const STORAGE_KEY = 'dragonholt-companion-save-v1';
-const DEFAULT_STATE = {
-  party: { fame: 2, gold: 100, storyPoints: [], notes: '' },
-  heroes: [],
-  village: { day: 1, time: 0, heroism: 0, academic: 0, combat: 0, physical: 0, social: 0, spiritual: 0 },
-  achievements: []
-};
-
-function loadSavedState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_STATE;
-    const parsed = JSON.parse(raw);
-    return {
-      party: { ...DEFAULT_STATE.party, ...(parsed.party || {}) },
-      heroes: Array.isArray(parsed.heroes) ? parsed.heroes : [],
-      village: { ...DEFAULT_STATE.village, ...(parsed.village || {}) },
-      achievements: Array.isArray(parsed.achievements) ? parsed.achievements : []
-    };
-  } catch (error) {
-    console.warn('Could not load Dragonholt save:', error);
-    return DEFAULT_STATE;
-  }
-}
+import { useCampaign } from './state/useCampaign';
+import { useCampaignActions } from './state/useCampaignActions';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('party');
-  const initialSave = useRef(loadSavedState()).current;
-  const [party, setParty] = useState(initialSave.party);
-  const [heroes, setHeroes] = useState(initialSave.heroes);
   const [editingHero, setEditingHero] = useState(null);
-  const [village, setVillage] = useState(initialSave.village);
-  const [achievements, setAchievements] = useState(initialSave.achievements);
   const importInputRef = useRef(null);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ party, heroes, village, achievements }));
-  }, [party, heroes, village, achievements]);
+  const campaign = useCampaign();
+  const actions = useCampaignActions(campaign);
+  const { party, setParty, heroes, village, achievements, replaceCampaign, exportCampaign } = campaign;
 
   const exportSave = () => {
-    const save = { version: 1, exportedAt: new Date().toISOString(), party, heroes, village, achievements };
-    const blob = new Blob([JSON.stringify(save, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportCampaign(), null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -62,11 +31,7 @@ export default function App() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = JSON.parse(reader.result);
-        setParty({ ...DEFAULT_STATE.party, ...(parsed.party || {}) });
-        setHeroes(Array.isArray(parsed.heroes) ? parsed.heroes : []);
-        setVillage({ ...DEFAULT_STATE.village, ...(parsed.village || {}) });
-        setAchievements(Array.isArray(parsed.achievements) ? parsed.achievements : []);
+        replaceCampaign(JSON.parse(reader.result));
         setEditingHero(null);
       } catch {
         alert('That file does not look like a Dragonholt Companion save.');
@@ -76,29 +41,27 @@ export default function App() {
     reader.readAsText(file);
   };
 
-  const toggleStoryPoint = point => setParty(current => ({ ...current, storyPoints: current.storyPoints.includes(point) ? current.storyPoints.filter(value => value !== point) : [...current.storyPoints, point] }));
-  const advanceTime = () => setVillage(current => ({ ...current, time: Math.min(current.time + 1, DAY_SLOTS[current.day] || 8) }));
-  const nextDay = () => setVillage(current => ({ ...current, day: Math.min(current.day + 1, 7), time: 0 }));
-  const updateProgress = (track, value) => setVillage(current => ({ ...current, [track]: value }));
-  const toggleAchievement = achievement => setAchievements(current => current.includes(achievement) ? current.filter(value => value !== achievement) : [...current, achievement]);
-
   const createHero = () => {
-    const newHero = { id: Date.now(), name: 'New Hero', race: 'Human', class: 'Wildlander', maxStamina: 14, currentStamina: 14, exp: 0, skills: [], disabledSkills: [], items: '', notes: '' };
-    setHeroes(current => [...current, newHero]);
-    setEditingHero(newHero.id);
-  };
-  const updateHero = (id, updates) => setHeroes(current => current.map(hero => hero.id === id ? { ...hero, ...updates } : hero));
-  const deleteHero = id => { setHeroes(current => current.filter(hero => hero.id !== id)); setEditingHero(null); };
-  const toggleHeroSkill = (heroId, skill) => {
-    const hero = heroes.find(item => item.id === heroId);
-    if (hero) updateHero(heroId, { skills: hero.skills.includes(skill) ? hero.skills.filter(value => value !== skill) : [...hero.skills, skill] });
-  };
-  const toggleDisabledSkill = (heroId, skill) => {
-    const hero = heroes.find(item => item.id === heroId);
-    if (hero) updateHero(heroId, { disabledSkills: hero.disabledSkills.includes(skill) ? hero.disabledSkills.filter(value => value !== skill) : [...hero.disabledSkills, skill] });
+    const hero = actions.createHero();
+    setEditingHero(hero.id);
   };
 
-  const heroScreenProps = { heroes, editingHero, setEditingHero, createHero, updateHero, deleteHero, toggleHeroSkill, toggleDisabledSkill };
+  const deleteHero = id => {
+    actions.deleteHero(id);
+    setEditingHero(null);
+  };
+
+  const heroScreenProps = {
+    heroes,
+    editingHero,
+    setEditingHero,
+    createHero,
+    updateHero: actions.updateHero,
+    deleteHero,
+    toggleHeroSkill: actions.toggleHeroSkill,
+    toggleDisabledSkill: actions.toggleDisabledSkill
+  };
+
   const tabs = [
     { id: 'party', icon: Book, desktop: 'Party & Story', mobile: 'Story' },
     { id: 'heroes', icon: Users, desktop: 'Heroes', mobile: 'Heroes' },
@@ -129,10 +92,10 @@ export default function App() {
           ))}
         </div>
         <div>
-          {activeTab === 'party' && <PartyScreen party={party} setParty={setParty} onToggleStoryPoint={toggleStoryPoint} />}
+          {activeTab === 'party' && <PartyScreen party={party} setParty={setParty} onToggleStoryPoint={actions.toggleStoryPoint} />}
           {activeTab === 'heroes' && <HeroesScreen {...heroScreenProps} />}
-          {activeTab === 'village' && <VillageScreen village={village} advanceTime={advanceTime} nextDay={nextDay} updateProgress={updateProgress} />}
-          {activeTab === 'achievements' && <AchievementsScreen achievements={achievements} toggleAchievement={toggleAchievement} />}
+          {activeTab === 'village' && <VillageScreen village={village} advanceTime={actions.advanceTime} nextDay={actions.nextDay} updateProgress={actions.updateProgress} />}
+          {activeTab === 'achievements' && <AchievementsScreen achievements={achievements} toggleAchievement={actions.toggleAchievement} />}
         </div>
       </main>
 
