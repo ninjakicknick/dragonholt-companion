@@ -1,70 +1,22 @@
-import { Check, Clock, Minus, Plus } from 'lucide-react';
+import { Check, Clock, LockKeyhole, Minus, Plus, Sparkles } from 'lucide-react';
 import { DAY_SLOTS } from '../data/gameData';
+import { HEROISM_MILESTONES, TRAINING_TRACKS } from '../data/villageRules';
 
-export default function VillageScreen({ village, advanceTime, nextDay, updateProgress }) {
-  const renderTrack = (label, current, max, trackKey) => (
-    <div className="mb-4">
-      <div className="flex justify-between items-end mb-1">
-        <span className="font-bold text-[#4a3b32]">{label}</span>
-        <span className="text-xs text-[#8c8c8c] font-bold">{current} / {max}</span>
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {Array.from({ length: max }).map((_, index) => (
-          <button key={index} onClick={() => updateProgress(trackKey, current === index + 1 ? index : index + 1)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded border flex items-center justify-center transition-colors ${index < current ? 'bg-[#8c2a2a] border-[#5c1a1a] text-white' : 'bg-white border-[#d2c2a5] hover:bg-[#e8e0cc]'}`}>
-            {index < current && <Check size={14} />}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+export default function VillageScreen({ village, heroes, advanceTime, nextDay, updateProgress, claimHeroismMilestone, learnTrainingSkill }) {
+  const claimed = village.claimedHeroismMilestones || [];
+  const pendingRewards = HEROISM_MILESTONES.filter(m => village.heroism >= m.value && !claimed.includes(m.value));
+  const unlockedTracks = Object.entries(TRAINING_TRACKS).filter(([key, track]) => (village[key] || 0) >= track.max);
 
+  const renderTrack = (label, current, max, trackKey) => <div className="mb-4"><div className="flex justify-between items-end mb-1"><span className="font-bold text-[#4a3b32]">{label}</span><span className="text-xs text-[#8c8c8c] font-bold">{current} / {max}</span></div><div className="flex flex-wrap gap-1">{Array.from({length:max}).map((_,index)=><button key={index} onClick={()=>updateProgress(trackKey,current===index+1?index:index+1)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded border flex items-center justify-center ${index<current?'bg-[#8c2a2a] border-[#5c1a1a] text-white':'bg-white border-[#d2c2a5]'}`}>{index<current&&<Check size={14}/>}</button>)}</div></div>;
   const maxTime = DAY_SLOTS[village.day] || 8;
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="bg-[#f8f4e6] p-4 sm:p-6 rounded-lg shadow-md border border-[#d2c2a5]">
-        <h3 className="text-xl font-bold text-[#4a3b32] mb-4 flex items-center gap-2 border-b border-[#d2c2a5] pb-2"><Clock size={20} /> Time Tracker (Dragonholt Village)</h3>
-        <div className="flex flex-col sm:flex-row items-center gap-6 justify-between">
-          <div className="text-center sm:text-left">
-            <div className="text-sm font-bold text-[#8c8c8c] uppercase tracking-wider mb-1">Current Day</div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => updateProgress('day', Math.max(1, village.day - 1))} className="p-2 bg-[#e8e0cc] rounded-full hover:bg-[#d2c2a5]"><Minus size={16} /></button>
-              <span className="text-3xl font-bold text-[#8c2a2a] w-12 text-center">Day {village.day}</span>
-              <button onClick={() => updateProgress('day', Math.min(7, village.day + 1))} className="p-2 bg-[#e8e0cc] rounded-full hover:bg-[#d2c2a5]"><Plus size={16} /></button>
-            </div>
-          </div>
-          <div className="flex-1 w-full text-center">
-            <div className="text-sm font-bold text-[#8c8c8c] uppercase tracking-wider mb-2">Time Passed</div>
-            <div className="flex justify-center flex-wrap gap-2 mb-3">
-              {Array.from({ length: maxTime }).map((_, index) => (
-                <div key={index} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all ${index < village.time ? 'bg-[#4a3b32] border-[#2a1b12] text-white scale-110' : 'bg-white border-[#d2c2a5] text-transparent'}`}>
-                  {index < village.time && <Check size={14} />}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-4">
-              <button onClick={() => updateProgress('time', Math.max(0, village.time - 1))} disabled={village.time === 0} className="px-3 py-1 bg-[#e8e0cc] text-[#5c4a3d] rounded hover:bg-[#d2c2a5] disabled:opacity-50">Rewind</button>
-              <button onClick={advanceTime} disabled={village.time >= maxTime} className="px-4 py-1 bg-[#8c2a2a] text-white rounded font-bold hover:bg-[#6b1e1e] disabled:opacity-50">Advance Time</button>
-              <button onClick={nextDay} className="px-3 py-1 bg-[#5c4a3d] text-white rounded hover:bg-[#4a3b32]">Next Day</button>
-            </div>
-            {village.time >= maxTime && <div className="mt-2 text-sm text-[#8c2a2a] font-bold animate-pulse">Time to end the day! Read the end-of-day entry.</div>}
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-[#f8f4e6] p-4 rounded-lg shadow border border-[#d2c2a5]">
-          {renderTrack('Heroism', village.heroism, 24, 'heroism')}
-          <p className="text-xs text-[#5c4a3d] mt-2 italic">Awards Fame and XP at 8, 16, and 24 points.</p>
-        </div>
-        <div className="bg-[#f8f4e6] p-4 rounded-lg shadow border border-[#d2c2a5]">
-          <h4 className="font-bold text-[#4a3b32] border-b border-[#d2c2a5] pb-2 mb-3">Training Progress</h4>
-          {renderTrack('Academic Study', village.academic, 6, 'academic')}
-          {renderTrack('Combat Training', village.combat, 6, 'combat')}
-          {renderTrack('Physical Training', village.physical, 6, 'physical')}
-          {renderTrack('Social Practice', village.social, 6, 'social')}
-          {renderTrack('Spiritual Meditation', village.spiritual, 5, 'spiritual')}
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="bg-[#f8f4e6] p-4 sm:p-6 rounded-xl shadow-md border border-[#d2c2a5]"><h3 className="text-xl font-bold text-[#4a3b32] mb-4 flex items-center gap-2 border-b border-[#d2c2a5] pb-2"><Clock size={20}/> Time in Dragonholt Village</h3><div className="flex flex-col sm:flex-row items-center gap-6 justify-between"><div className="text-center"><div className="text-xs font-bold text-[#8c8c8c] uppercase">Current Day</div><div className="flex items-center gap-3 mt-1"><button onClick={()=>updateProgress('day',Math.max(1,village.day-1))} className="p-2 bg-[#e8e0cc] rounded-full"><Minus size={16}/></button><span className="text-2xl font-bold text-[#8c2a2a]">Day {village.day}</span><button onClick={()=>updateProgress('day',Math.min(7,village.day+1))} className="p-2 bg-[#e8e0cc] rounded-full"><Plus size={16}/></button></div></div><div className="flex-1 text-center"><div className="text-xs font-bold text-[#8c8c8c] uppercase mb-2">Time Passed</div><div className="flex justify-center gap-2 mb-3">{Array.from({length:maxTime}).map((_,i)=><div key={i} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${i<village.time?'bg-[#4a3b32] border-[#2a1b12] text-white':'bg-white border-[#d2c2a5]'}`}>{i<village.time&&<Check size={14}/>}</div>)}</div><div className="flex justify-center gap-2"><button onClick={()=>updateProgress('time',Math.max(0,village.time-1))} disabled={!village.time} className="px-3 py-2 bg-[#e8e0cc] rounded disabled:opacity-40">Rewind</button><button onClick={advanceTime} disabled={village.time>=maxTime} className="px-4 py-2 bg-[#8c2a2a] text-white rounded font-bold disabled:opacity-40">Advance Time</button><button onClick={nextDay} className="px-3 py-2 bg-[#5c4a3d] text-white rounded">Next Day</button></div>{village.time>=maxTime&&<div className="mt-2 text-sm text-[#8c2a2a] font-bold">The day's time is complete.</div>}</div></div></div>
+
+    {pendingRewards.map(reward=><div key={reward.value} className="bg-[#f3ead6] border-2 border-[#c49a45] rounded-xl p-5 shadow-md"><div className="flex gap-3 items-start"><Sparkles className="text-[#9b6b20] shrink-0"/><div className="flex-1"><div className="text-xs uppercase tracking-[0.18em] font-bold text-[#8c2a2a]">Heroism Milestone</div><h3 className="text-xl font-bold text-[#3e3028]">{reward.value} Heroism reached</h3><p className="text-sm text-[#5c4a3d] mt-2">Each hero gains 1 experience{reward.stamina ? ' and increases maximum stamina by 2' : ''}. Fame increases by 1.</p><button onClick={()=>claimHeroismMilestone(reward.value)} className="mt-3 px-4 py-2 bg-[#8c2a2a] text-white rounded-lg font-bold">Claim Reward</button></div></div></div>)}
+
+    <div className="grid md:grid-cols-2 gap-6"><div className="bg-[#f8f4e6] p-5 rounded-xl shadow border border-[#d2c2a5]">{renderTrack('Heroism',village.heroism,24,'heroism')}<div className="space-y-2 mt-3">{HEROISM_MILESTONES.map(m=><div key={m.value} className={`text-xs flex gap-2 ${claimed.includes(m.value)?'text-[#617254]':'text-[#75665b]'}`}><span className="font-bold w-5">{claimed.includes(m.value)?'✓':m.value}</span><span>{m.value}: +1 XP each, +1 Fame{m.stamina?', +2 maximum Stamina each':''}</span></div>)}</div></div><div className="bg-[#f8f4e6] p-5 rounded-xl shadow border border-[#d2c2a5]"><h4 className="font-bold text-[#4a3b32] border-b border-[#d2c2a5] pb-2 mb-3">Training Progress</h4>{Object.entries(TRAINING_TRACKS).map(([key,track])=><div key={key}>{renderTrack(track.label,village[key]||0,track.max,key)}{(village[key]||0)>=track.max&&<div className="-mt-2 mb-4 text-xs text-[#617254] font-bold flex items-center gap-1"><Check size={13}/> Skill training unlocked</div>}</div>)}</div></div>
+
+    {unlockedTracks.length>0&&<div className="bg-[#f8f4e6] p-5 rounded-xl shadow border border-[#d2c2a5]"><div className="flex items-center gap-2 border-b border-[#d2c2a5] pb-3 mb-4"><LockKeyhole size={18} className="text-[#8c2a2a]"/><div><h3 className="font-bold text-[#3e3028]">Unlocked Skill Training</h3><p className="text-xs text-[#75665b]">A hero may spend 1 experience to learn an unlocked skill.</p></div></div>{heroes.length===0?<p className="text-sm text-[#8b7b6d] italic">Add a hero to use skill training.</p>:heroes.map(hero=><div key={hero.id} className="mb-5 last:mb-0"><div className="flex justify-between items-baseline mb-2"><h4 className="font-bold text-[#49382f]">{hero.name}</h4><span className="text-xs font-bold text-[#8c2a2a]">{hero.exp||0} XP</span></div><div className="flex flex-wrap gap-2">{[...new Set(unlockedTracks.flatMap(([,track])=>track.skills))].filter(skill=>!hero.skills.includes(skill)).map(skill=><button key={skill} disabled={(hero.exp||0)<1} onClick={()=>learnTrainingSkill(hero.id,skill)} className="px-3 py-2 text-xs bg-white border border-[#d2c2a5] rounded-lg text-[#49382f] font-bold disabled:opacity-40">Learn {skill} · 1 XP</button>)}{[...new Set(unlockedTracks.flatMap(([,track])=>track.skills))].every(skill=>hero.skills.includes(skill))&&<span className="text-xs text-[#617254]">All currently unlocked skills learned.</span>}</div></div>)}</div>}
+  </div>;
 }
