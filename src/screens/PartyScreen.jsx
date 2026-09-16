@@ -1,35 +1,13 @@
-import { Award, Map, Minus, Plus } from 'lucide-react';
+import { Award, Coins, Feather, Minus, Plus, ScrollText } from 'lucide-react';
 import StoryPointGrid from '../components/StoryPointGrid';
 
 export default function PartyScreen({ party, setParty, onToggleStoryPoint }) {
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="bg-[#f8f4e6] p-4 rounded-lg shadow border border-[#d2c2a5] flex-1 flex items-center justify-between">
-          <div className="flex items-center gap-2"><Award className="text-[#c49a45]" /><span className="font-bold text-[#5c4a3d] text-lg">Fame</span></div>
-          <div className="flex items-center gap-3">
-            <button type="button" aria-label="Decrease fame" onClick={() => setParty(current => ({ ...current, fame: Math.max(0, current.fame - 1) }))} className="p-1 bg-[#e8e0cc] rounded text-[#5c4a3d] hover:bg-[#d2c2a5]"><Minus size={18} /></button>
-            <span className="text-xl font-bold text-[#8c2a2a] w-8 text-center">{party.fame}</span>
-            <button type="button" aria-label="Increase fame" onClick={() => setParty(current => ({ ...current, fame: current.fame + 1 }))} className="p-1 bg-[#e8e0cc] rounded text-[#5c4a3d] hover:bg-[#d2c2a5]"><Plus size={18} /></button>
-          </div>
-        </div>
-        <div className="bg-[#f8f4e6] p-4 rounded-lg shadow border border-[#d2c2a5] flex-1 flex items-center justify-between">
-          <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-yellow-500 border-2 border-yellow-600 flex items-center justify-center text-[10px] font-bold text-yellow-800">G</div><span className="font-bold text-[#5c4a3d] text-lg">Gold</span></div>
-          <div className="flex items-center gap-3">
-            <button type="button" aria-label="Decrease gold by five" onClick={() => setParty(current => ({ ...current, gold: Math.max(0, current.gold - 5) }))} className="p-1 bg-[#e8e0cc] rounded text-[#5c4a3d] hover:bg-[#d2c2a5]"><Minus size={18} /></button>
-            <input type="number" aria-label="Party gold" value={party.gold} onChange={event => setParty(current => ({ ...current, gold: Number.parseInt(event.target.value, 10) || 0 }))} className="w-16 text-center bg-transparent font-bold text-[#8c2a2a] border-b border-[#d2c2a5] focus:outline-none" />
-            <button type="button" aria-label="Increase gold by five" onClick={() => setParty(current => ({ ...current, gold: current.gold + 5 }))} className="p-1 bg-[#e8e0cc] rounded text-[#5c4a3d] hover:bg-[#d2c2a5]"><Plus size={18} /></button>
-          </div>
-        </div>
-      </div>
-      <div>
-        <h3 className="text-xl font-bold text-[#4a3b32] mb-3 flex items-center gap-2"><Map size={20} /> Story Points Tracked: {party.storyPoints.length}</h3>
-        <StoryPointGrid storyPoints={party.storyPoints} onToggle={onToggleStoryPoint} />
-      </div>
-      <div>
-        <h3 className="text-xl font-bold text-[#4a3b32] mb-3">Campaign Notes</h3>
-        <textarea value={party.notes} onChange={event => setParty(current => ({ ...current, notes: event.target.value }))} className="w-full h-32 p-3 bg-[#f8f4e6] border border-[#d2c2a5] rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-[#8c2a2a] text-[#4a3b32]" placeholder="Jot down hints, locations, and clues here..." />
-      </div>
-    </div>
-  );
+ const adjust=(key,delta)=>setParty(current=>({...current,[key]:Math.max(0,current[key]+delta)}));
+ return <div className="space-y-6 animate-in fade-in duration-300">
+  <header><div className="ink-label text-[9px] text-[#8a7767]">Campaign ledger</div><h2 className="display-serif text-3xl font-bold text-[#3e3028]">Story & Party</h2><p className="text-sm text-[#78675a] mt-1">The shared record carried by the whole company.</p></header><div className="h-px bg-gradient-to-r from-transparent via-[#b79f78] to-transparent"/>
+  <section className="grid sm:grid-cols-2 gap-3"><Resource icon={Award} label="Fame" value={party.fame} minus={()=>adjust('fame',-1)} plus={()=>adjust('fame',1)}/><Resource icon={Coins} label="Gold" value={party.gold} minus={()=>adjust('gold',-5)} plus={()=>adjust('gold',5)} editable onChange={value=>setParty(current=>({...current,gold:value}))}/></section>
+  <section className="paper-panel rounded-2xl p-5 sm:p-6"><div className="flex items-end justify-between gap-3 mb-4"><div><div className="ink-label text-[9px] text-[#8a7767]">Campaign marks</div><h3 className="display-serif text-2xl font-bold text-[#453329]">Story Points</h3></div><div className="display-serif text-2xl font-bold text-[#7b2d2d]">{party.storyPoints.length}</div></div><p className="text-sm text-[#78675a] mb-5">Mark the story points your party has recorded during play.</p><StoryPointGrid storyPoints={party.storyPoints} onToggle={onToggleStoryPoint}/></section>
+  <section className="paper-panel rounded-2xl p-5 sm:p-6"><div className="flex items-center gap-3 mb-4"><div className="w-9 h-9 rounded-full bg-[#efe3c8] flex items-center justify-center"><Feather size={17} className="text-[#7b2d2d]"/></div><div><div className="ink-label text-[9px] text-[#8a7767]">Loose pages</div><h3 className="display-serif text-xl font-bold text-[#453329]">Campaign Notes</h3></div></div><textarea value={party.notes} onChange={event=>setParty(current=>({...current,notes:event.target.value}))} className="w-full min-h-40 p-4 bg-[#fffdf5]/65 border border-[#d2c2a5] rounded-xl focus:outline-none focus:border-[#8c5a50] leading-relaxed" placeholder="Jot down hints, locations, clues, names, and anything the party wants to remember…"/></section>
+ </div>;
 }
+function Resource({icon:Icon,label,value,minus,plus,editable,onChange}){return <div className="paper-panel rounded-2xl p-4 flex items-center justify-between"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-[#efe3c8] border border-[#d0bd96] flex items-center justify-center"><Icon size={18} className="text-[#7b2d2d]"/></div><div><div className="ink-label text-[8px] text-[#8a7767]">Party resource</div><div className="display-serif text-xl font-bold text-[#453329]">{label}</div></div></div><div className="flex items-center gap-2"><button aria-label={`Decrease ${label}`} onClick={minus} className="p-2 rounded-full bg-[#e9dfc8] text-[#5c4a3d]"><Minus size={15}/></button>{editable?<input type="number" value={value} onChange={e=>onChange(Number.parseInt(e.target.value,10)||0)} className="display-serif w-16 text-center bg-transparent text-xl font-bold text-[#7b2d2d] border-b border-[#c7b590] outline-none"/>:<span className="display-serif text-2xl font-bold text-[#7b2d2d] min-w-8 text-center">{value}</span>}<button aria-label={`Increase ${label}`} onClick={plus} className="p-2 rounded-full bg-[#e9dfc8] text-[#5c4a3d]"><Plus size={15}/></button></div></div>}
