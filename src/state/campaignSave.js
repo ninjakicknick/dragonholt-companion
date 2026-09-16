@@ -1,5 +1,5 @@
 export const STORAGE_KEY = 'dragonholt-companion-save-v1';
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export const DEFAULT_STATE = {
   party: { fame: 2, gold: 100, storyPoints: [], notes: '' },
@@ -12,7 +12,8 @@ export const DEFAULT_STATE = {
     combat: 0,
     physical: 0,
     social: 0,
-    spiritual: 0
+    spiritual: 0,
+    claimedHeroismMilestones: []
   },
   achievements: []
 };
@@ -22,18 +23,17 @@ const cloneDefaults = () => JSON.parse(JSON.stringify(DEFAULT_STATE));
 export function normalizeCampaign(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const defaults = cloneDefaults();
+  const village = { ...defaults.village, ...(source.village || {}) };
+  village.claimedHeroismMilestones = Array.isArray(village.claimedHeroismMilestones) ? village.claimedHeroismMilestones : [];
 
   return {
     party: { ...defaults.party, ...(source.party || {}) },
     heroes: Array.isArray(source.heroes) ? source.heroes : [],
-    village: { ...defaults.village, ...(source.village || {}) },
+    village,
     achievements: Array.isArray(source.achievements) ? source.achievements : []
   };
 }
 
-// Save migrations intentionally live here rather than in the UI. The original
-// v1 save had no explicit version in localStorage; normalizeCampaign is its
-// migration path and preserves the existing public state shape.
 export function migrateSave(raw) {
   return normalizeCampaign(raw);
 }
