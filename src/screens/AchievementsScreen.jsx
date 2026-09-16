@@ -1,21 +1,6 @@
 import { Award, Check } from 'lucide-react';
 import { ACHIEVEMENTS } from '../data/gameData';
 
-export default function AchievementsScreen({ achievements, toggleAchievement }) {
-  return (
-    <div className="bg-[#f8f4e6] p-4 sm:p-6 rounded-lg shadow border border-[#d2c2a5] animate-in fade-in duration-300">
-      <h3 className="text-xl font-bold text-[#4a3b32] mb-4 flex items-center gap-2 border-b border-[#d2c2a5] pb-2"><Award size={20} /> Campaign Achievements</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {ACHIEVEMENTS.map(achievement => {
-          const done = achievements.includes(achievement);
-          return (
-            <div key={achievement} onClick={() => toggleAchievement(achievement)} className={`p-3 rounded border cursor-pointer flex items-start gap-3 transition-colors ${done ? 'bg-[#e8f0e6] border-[#8cb38c]' : 'bg-white border-[#d2c2a5] hover:bg-[#e8e0cc]'}`}>
-              <div className={`mt-0.5 w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border ${done ? 'bg-[#4a8c4a] border-[#2a5c2a] text-white' : 'bg-gray-50 border-gray-300'}`}>{done && <Check size={14} />}</div>
-              <span className={`text-sm ${done ? 'text-[#2a5c2a] font-bold line-through opacity-80' : 'text-[#4a3b32]'}`}>{achievement}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+export default function AchievementsScreen({achievements,toggleAchievement}){
+ return <div className="space-y-5 animate-in fade-in duration-300"><header className="text-center"><div className="mx-auto w-12 h-12 rounded-full border border-[#bda477] bg-[#efe3c8] flex items-center justify-center"><Award size={23} className="text-[#8a632c]"/></div><div className="ink-label text-[9px] text-[#8a7767] mt-3">Deeds remembered</div><h2 className="display-serif text-3xl font-bold text-[#3e3028]">Campaign Trophies</h2><p className="text-sm text-[#78675a] mt-1">{achievements.length} of {ACHIEVEMENTS.length} achievements recorded</p></header><div className="h-px bg-gradient-to-r from-transparent via-[#b79f78] to-transparent"/><div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{ACHIEVEMENTS.map((achievement,index)=>{const done=achievements.includes(achievement);return <button key={achievement} onClick={()=>toggleAchievement(achievement)} className={`paper-panel text-left rounded-xl p-4 flex items-start gap-3 transition ${done?'border-[#aa9367]':'opacity-75 hover:opacity-100'}`}><div className={`mt-0.5 w-8 h-8 rounded-full shrink-0 flex items-center justify-center border ${done?'bg-[#7b2d2d] border-[#642323] text-[#fff7e5]':'bg-[#eee4cf] border-[#c9b895] text-[#9b8875]'}`}>{done?<Check size={16}/>:<span className="display-serif text-xs font-bold">{index+1}</span>}</div><div><div className={`display-serif font-bold leading-snug ${done?'text-[#453329]':'text-[#6e5d50]'}`}>{achievement}</div>{done&&<div className="ink-label text-[7px] text-[#8a632c] mt-1.5">Recorded in the journal</div>}</div></button>})}</div></div>;
 }
