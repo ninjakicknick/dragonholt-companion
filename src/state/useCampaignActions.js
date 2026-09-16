@@ -26,19 +26,22 @@ export function useCampaignActions({ heroes, setParty, setHeroes, setVillage, se
   };
 
   const createHero = (details = {}) => {
+    const baseMaxStamina = details.baseMaxStamina ?? details.maxStamina ?? 14;
     const hero = {
       id: Date.now(),
       name: 'New Hero',
       race: 'Human',
       class: 'Wildlander',
-      maxStamina: 14,
-      currentStamina: 14,
+      baseMaxStamina,
+      maxStamina: baseMaxStamina,
+      currentStamina: baseMaxStamina,
       exp: 0,
       skills: [],
       disabledSkills: [],
       items: '',
       notes: '',
-      ...details
+      ...details,
+      baseMaxStamina
     };
     setHeroes(current => [...current, hero]);
     return hero;
