@@ -25,7 +25,7 @@ export function useCampaignActions({ heroes, setParty, setHeroes, setVillage, se
     setAchievements(current => toggleInList(current, achievement));
   };
 
-  const createHero = () => {
+  const createHero = (details = {}) => {
     const hero = {
       id: Date.now(),
       name: 'New Hero',
@@ -37,7 +37,8 @@ export function useCampaignActions({ heroes, setParty, setHeroes, setVillage, se
       skills: [],
       disabledSkills: [],
       items: '',
-      notes: ''
+      notes: '',
+      ...details
     };
     setHeroes(current => [...current, hero]);
     return hero;
